@@ -1,0 +1,142 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_roomcalendar/calendar
+
+    Room calendar with toolbar, day/week grid or month table, and room legend.
+
+    Context variables required for this template:
+    * cmid - course module id
+    * roomid - selected room, 0 for all rooms
+    * canadd - whether the user may add entries at all
+    * canaddhere, addroomid - whether the user may add entries for the current room filter, and the room to preselect
+    * mygroup - optional text naming the user's permission group
+    * title, prevurl, nexturl, todayurl - navigation
+    * views - list of {label, url, active}
+    * roomoptions - list of {value, label, selected}
+    * categoryfilter - optional {label, active, baseurl, options (list of {id, name, checked})}
+    * legend - list of {name, color, notbookable, url}
+    * ismonth/month or isgrid/grid - see the partial templates
+    * entriesjson - JSON details of all shown entries
+
+    Names (rooms, entries, labels) are output of format_string() and therefore rendered unescaped.
+
+    Example context (json):
+    {
+        "cmid": 3, "roomid": 0, "canadd": true, "canaddhere": true, "addroomid": 0, "mygroup": "Your permission group: Staff", "title": "October 2026",
+        "prevurl": "#", "nexturl": "#", "todayurl": "#",
+        "views": [{"label": "Day", "url": "#", "active": false}, {"label": "Month", "url": "#", "active": true}],
+        "roomoptions": [{"value": "#", "label": "All rooms", "selected": true}],
+        "categoryfilter": {"label": "Categories: 1 of 2", "active": true, "baseurl": "#",
+            "options": [{"id": 1, "name": "Lessons", "checked": true}, {"id": 2, "name": "Rehearsal", "checked": false}]},
+        "hasrooms": true,
+        "legend": [{"name": "Room A", "color": "blue", "notbookable": false, "url": "#"}],
+        "ismonth": true,
+        "month": {"weekdays": [{"name": "Mon"}], "weeks": []},
+        "entriesjson": "{}"
+    }
+}}
+<div class="mod-roomcalendar" id="mod-roomcalendar-{{uniqid}}" data-region="mod-roomcalendar"
+     data-cmid="{{cmid}}" data-roomid="{{roomid}}" data-entries="{{entriesjson}}">
+    <div class="mod-roomcalendar-toolbar">
+        <div class="mod-roomcalendar-nav">
+            <a class="btn btn-secondary" href="{{todayurl}}">{{#str}}today, mod_roomcalendar{{/str}}</a>
+            <a class="btn btn-outline-secondary mod-roomcalendar-arrow" href="{{prevurl}}" title="{{#str}}previous, mod_roomcalendar{{/str}}">
+                {{#pix}}t/left, core, {{#str}}previous, mod_roomcalendar{{/str}}{{/pix}}
+            </a>
+            <a class="btn btn-outline-secondary mod-roomcalendar-arrow" href="{{nexturl}}" title="{{#str}}next, mod_roomcalendar{{/str}}">
+                {{#pix}}t/right, core, {{#str}}next, mod_roomcalendar{{/str}}{{/pix}}
+            </a>
+            <h3 class="mod-roomcalendar-title" aria-live="polite">{{title}}</h3>
+        </div>
+        <div class="mod-roomcalendar-controls">
+            {{#hasrooms}}
+            <label class="mod-roomcalendar-sr-only" for="mod-roomcalendar-room-{{uniqid}}">{{#str}}room, mod_roomcalendar{{/str}}</label>
+            <select class="custom-select form-select mod-roomcalendar-roomselect" id="mod-roomcalendar-room-{{uniqid}}" data-action="room-select">
+                {{#roomoptions}}
+                <option value="{{value}}" {{#selected}}selected{{/selected}}>{{{label}}}</option>
+                {{/roomoptions}}
+            </select>
+            {{/hasrooms}}
+            {{#categoryfilter}}
+            <details class="mod-roomcalendar-catfilter" data-region="category-filter" data-baseurl="{{baseurl}}">
+                <summary class="btn {{#active}}btn-primary{{/active}}{{^active}}btn-outline-secondary{{/active}}"
+                         aria-label="{{#str}}categoryfilter, mod_roomcalendar{{/str}}: {{label}}">
+                    {{#pix}}i/filter, core{{/pix}} {{label}}
+                </summary>
+                <div class="mod-roomcalendar-catfilter-panel" role="group" aria-label="{{#str}}categoryfilter, mod_roomcalendar{{/str}}">
+                    <div class="mod-roomcalendar-catfilter-quick">
+                        <button type="button" class="btn btn-link btn-sm" data-action="categories-all">{{#str}}selectallcategories, mod_roomcalendar{{/str}}</button>
+                        <button type="button" class="btn btn-link btn-sm" data-action="categories-none">{{#str}}selectnocategories, mod_roomcalendar{{/str}}</button>
+                    </div>
+                    {{#options}}
+                    <label class="mod-roomcalendar-catfilter-option">
+                        <input type="checkbox" value="{{id}}" {{#checked}}checked{{/checked}}> {{{name}}}
+                    </label>
+                    {{/options}}
+                    <button type="button" class="btn btn-primary btn-sm mod-roomcalendar-catfilter-apply" data-action="categories-apply">{{#str}}applyfilter, mod_roomcalendar{{/str}}</button>
+                </div>
+            </details>
+            {{/categoryfilter}}
+            <div class="btn-group" role="group" aria-label="{{#str}}view, mod_roomcalendar{{/str}}">
+                {{#views}}
+                <a class="btn {{#active}}btn-primary{{/active}}{{^active}}btn-outline-secondary{{/active}}" href="{{url}}" {{#active}}aria-current="page"{{/active}}>{{label}}</a>
+                {{/views}}
+            </div>
+            {{#canadd}}
+            <button type="button" class="btn btn-primary" data-action="add-entry" data-roomid="{{addroomid}}">
+                {{#pix}}t/add, core{{/pix}} {{#str}}addentry, mod_roomcalendar{{/str}}
+            </button>
+            {{/canadd}}
+            {{#managegroupsurl}}
+            <a class="btn btn-outline-secondary" href="{{managegroupsurl}}">{{#str}}managegroups, mod_roomcalendar{{/str}}</a>
+            {{/managegroupsurl}}
+            {{#manageroomsurl}}
+            <a class="btn btn-outline-secondary" href="{{manageroomsurl}}">{{#str}}managerooms, mod_roomcalendar{{/str}}</a>
+            {{/manageroomsurl}}
+        </div>
+    </div>
+
+    {{#mygroup}}
+    <p class="mod-roomcalendar-mygroup">{{mygroup}}</p>
+    {{/mygroup}}
+
+    {{#selectedroom}}
+    <div class="mod-roomcalendar-roominfo rc-color-{{color}}">
+        <strong>{{{name}}}</strong>
+        {{#notbookable}}<span class="mod-roomcalendar-tag">{{#str}}notbookable, mod_roomcalendar{{/str}}</span>{{/notbookable}}
+        {{{description}}}
+    </div>
+    {{/selectedroom}}
+
+    {{#ismonth}}{{> mod_roomcalendar/month}}{{/ismonth}}
+    {{#isgrid}}{{> mod_roomcalendar/grid}}{{/isgrid}}
+
+    {{#hasrooms}}
+    <ul class="mod-roomcalendar-legend" aria-label="{{#str}}rooms, mod_roomcalendar{{/str}}">
+        {{#legend}}
+        <li><a href="{{url}}"><span class="mod-roomcalendar-swatch rc-color-{{color}}"></span>{{{name}}}</a>{{#notbookable}} <span class="mod-roomcalendar-tag">{{#str}}notbookable, mod_roomcalendar{{/str}}</span>{{/notbookable}}</li>
+        {{/legend}}
+        <li><span class="mod-roomcalendar-swatch rc-color-gray"></span>{{#str}}noroom, mod_roomcalendar{{/str}}</li>
+    </ul>
+    {{/hasrooms}}
+</div>
+{{#js}}
+require(['mod_roomcalendar/calendar'], function(Calendar) {
+    Calendar.init('#mod-roomcalendar-{{uniqid}}');
+});
+{{/js}}

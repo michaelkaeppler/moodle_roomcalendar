@@ -1,0 +1,517 @@
+/* Room calendar styles. Layout uses plugin specific classes only, so that it does not depend on
+   Bootstrap 4 or 5 utility classes (Moodle 4.5 uses Bootstrap 4, Moodle 5.x Bootstrap 5). */
+
+.mod-roomcalendar {
+    --rc-hour-height: 3rem;
+    --rc-line: #dee2e6;
+    --rc-line-soft: #f1f3f5;
+    --rc-today: #fff8e1;
+    --rc-muted: #6a737b;
+}
+
+.mod-roomcalendar-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Toolbar. */
+.mod-roomcalendar-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.mod-roomcalendar-nav,
+.mod-roomcalendar-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.mod-roomcalendar-title {
+    margin: 0 0 0 0.5rem;
+    font-size: 1.35rem;
+}
+
+.mod-roomcalendar-arrow .icon {
+    margin: 0;
+}
+
+.mod-roomcalendar-roomselect {
+    width: auto;
+    max-width: 16rem;
+}
+
+/* Category filter: a native details element, so it needs no Bootstrap dropdown JavaScript. */
+.mod-roomcalendar-catfilter {
+    position: relative;
+}
+
+.mod-roomcalendar-catfilter > summary {
+    list-style: none;
+    white-space: nowrap;
+}
+
+.mod-roomcalendar-catfilter > summary::-webkit-details-marker {
+    display: none;
+}
+
+.mod-roomcalendar-catfilter > summary .icon {
+    margin-right: 0.25rem;
+}
+
+.mod-roomcalendar-catfilter-panel {
+    position: absolute;
+    z-index: 1000;
+    top: calc(100% + 0.25rem);
+    left: 0;
+    min-width: 14rem;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: 0.5rem 0.75rem;
+    background-color: var(--bs-body-bg, #fff);
+    border: 1px solid var(--rc-line);
+    border-radius: 0.375rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.mod-roomcalendar-catfilter-quick {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0 -0.5rem 0.25rem;
+    border-bottom: 1px solid var(--rc-line);
+}
+
+.mod-roomcalendar-catfilter-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0.2rem 0;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.mod-roomcalendar-catfilter-apply {
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.mod-roomcalendar-roominfo {
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 1rem;
+    border-radius: 0.25rem;
+}
+
+.mod-roomcalendar-roominfo p:last-child {
+    margin-bottom: 0;
+}
+
+.mod-roomcalendar-tag {
+    display: inline-block;
+    padding: 0 0.4rem;
+    margin-left: 0.25rem;
+    font-size: 0.75rem;
+    border: 1px solid currentColor;
+    border-radius: 0.25rem;
+}
+
+/* Room colours: light background, strong left border, dark text (WCAG AA contrast). */
+.rc-color-blue {background-color: #dbeafe; border-color: #1d4ed8; color: #1e3a8a;}
+.rc-color-green {background-color: #dcfce7; border-color: #15803d; color: #14532d;}
+.rc-color-orange {background-color: #ffedd5; border-color: #c2410c; color: #7c2d12;}
+.rc-color-purple {background-color: #ede9fe; border-color: #6d28d9; color: #4c1d95;}
+.rc-color-red {background-color: #fee2e2; border-color: #b91c1c; color: #7f1d1d;}
+.rc-color-teal {background-color: #ccfbf1; border-color: #0f766e; color: #134e4a;}
+.rc-color-pink {background-color: #fce7f3; border-color: #be185d; color: #831843;}
+.rc-color-yellow {background-color: #fef9c3; border-color: #a16207; color: #713f12;}
+.rc-color-gray {background-color: #f1f5f9; border-color: #64748b; color: #1e293b;}
+
+.mod-roomcalendar-swatch {
+    display: inline-block;
+    width: 0.8rem;
+    height: 0.8rem;
+    margin-right: 0.35rem;
+    vertical-align: -0.05rem;
+    border: 0 solid;
+    border-left-width: 0.8rem;
+    border-radius: 0.15rem;
+}
+
+/* Entry chips. */
+.mod-roomcalendar-entry {
+    display: block;
+    width: 100%;
+    padding: 0.1rem 0.35rem;
+    margin: 0 0 2px 0;
+    overflow: hidden;
+    font-size: 0.8rem;
+    line-height: 1.25;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    border: 0 solid;
+    border-left-width: 4px;
+    border-radius: 0.2rem;
+}
+
+.mod-roomcalendar-entry:hover,
+.mod-roomcalendar-entry:focus {
+    filter: brightness(0.95);
+    outline-offset: 1px;
+}
+
+.mod-roomcalendar-entry-time {
+    font-weight: 600;
+    margin-right: 0.25rem;
+}
+
+.mod-roomcalendar-entry-contact {
+    margin-left: 0.25rem;
+}
+
+.mod-roomcalendar-entry-room {
+    margin-left: 0.25rem;
+    opacity: 0.85;
+}
+
+.mod-roomcalendar-entry-room::before {
+    content: "· ";
+}
+
+/* Month view. */
+.mod-roomcalendar-monthwrap {
+    overflow-x: auto;
+}
+
+.mod-roomcalendar-month {
+    width: 100%;
+    min-width: 42rem;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+.mod-roomcalendar-month th {
+    padding: 0.35rem;
+    font-weight: 600;
+    text-align: center;
+    border-bottom: 2px solid var(--rc-line);
+}
+
+.mod-roomcalendar-month td {
+    height: 7.5rem;
+    padding: 0.25rem;
+    vertical-align: top;
+    border: 1px solid var(--rc-line);
+}
+
+.mod-roomcalendar-month td.othermonth {
+    background-color: #f8f9fa;
+}
+
+.mod-roomcalendar-month td.othermonth .mod-roomcalendar-daynum {
+    color: var(--rc-muted);
+}
+
+.mod-roomcalendar-month td.today {
+    background-color: var(--rc-today);
+}
+
+.mod-roomcalendar-dayhead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.2rem;
+}
+
+.mod-roomcalendar-daynum {
+    display: inline-block;
+    min-width: 1.75rem;
+    padding: 0 0.3rem;
+    font-weight: 600;
+    text-align: center;
+    border-radius: 1rem;
+}
+
+.today .mod-roomcalendar-daynum {
+    color: #fff;
+    background-color: #0f6cbf;
+}
+
+.mod-roomcalendar-dayadd {
+    padding: 0 0.2rem;
+    line-height: 1;
+    background: transparent;
+    border: 0;
+    opacity: 0;
+}
+
+.mod-roomcalendar-month td:hover .mod-roomcalendar-dayadd,
+.mod-roomcalendar-dayadd:focus {
+    opacity: 1;
+}
+
+.mod-roomcalendar-dayadd .icon {
+    margin: 0;
+}
+
+.mod-roomcalendar-daylist {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.mod-roomcalendar-more {
+    font-size: 0.8rem;
+}
+
+/* Day and week grid. */
+.mod-roomcalendar-gridwrap {
+    overflow-x: auto;
+    border: 1px solid var(--rc-line);
+    border-radius: 0.25rem;
+}
+
+.mod-roomcalendar-grid {
+    display: grid;
+    grid-template-columns: 4.5rem repeat(var(--rc-cols), minmax(7rem, 1fr));
+    min-width: calc(4.5rem + var(--rc-cols) * 7rem);
+}
+
+.mod-roomcalendar-grid.isday {
+    grid-template-columns: 4.5rem repeat(var(--rc-cols), minmax(9rem, 1fr));
+    min-width: calc(4.5rem + var(--rc-cols) * 9rem);
+}
+
+.mod-roomcalendar-corner,
+.mod-roomcalendar-colhead {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    padding: 0.4rem 0.25rem;
+    background-color: #fff;
+    border-bottom: 1px solid var(--rc-line);
+}
+
+.mod-roomcalendar-colhead {
+    overflow: hidden;
+    font-weight: 600;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    border-left: 1px solid var(--rc-line);
+}
+
+.mod-roomcalendar-colhead.today {
+    background-color: var(--rc-today);
+}
+
+.mod-roomcalendar-colsub {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: normal;
+    color: var(--rc-muted);
+}
+
+.mod-roomcalendar-rowlabel {
+    padding: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--rc-muted);
+    text-align: right;
+    border-bottom: 2px solid var(--rc-line);
+}
+
+.mod-roomcalendar-alldaycell {
+    position: relative;
+    min-height: 1.9rem;
+    padding: 2px 2px 0.6rem 2px;
+    border-bottom: 2px solid var(--rc-line);
+    border-left: 1px solid var(--rc-line);
+}
+
+.mod-roomcalendar-alldaycell.today,
+.mod-roomcalendar-col.today {
+    background-color: var(--rc-today);
+}
+
+.mod-roomcalendar-alldaycell .mod-roomcalendar-entry {
+    position: relative;
+    z-index: 1;
+}
+
+.mod-roomcalendar-alldayadd {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 0;
+    cursor: copy;
+    background: transparent;
+    border: 0;
+}
+
+.mod-roomcalendar-hours {
+    position: relative;
+}
+
+.mod-roomcalendar-hour {
+    height: var(--rc-hour-height);
+    padding: 0 0.4rem;
+    font-size: 0.75rem;
+    color: var(--rc-muted);
+    text-align: right;
+    transform: translateY(-0.5rem);
+}
+
+.mod-roomcalendar-hour:first-child {
+    transform: none;
+}
+
+.mod-roomcalendar-col {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: calc(var(--rc-hours) * var(--rc-hour-height));
+    border-left: 1px solid var(--rc-line);
+    background-image: repeating-linear-gradient(to bottom,
+        var(--rc-line) 0, var(--rc-line) 1px,
+        transparent 1px, transparent calc(var(--rc-hour-height) / 2),
+        var(--rc-line-soft) calc(var(--rc-hour-height) / 2), var(--rc-line-soft) calc(var(--rc-hour-height) / 2 + 1px),
+        transparent calc(var(--rc-hour-height) / 2 + 1px), transparent var(--rc-hour-height));
+}
+
+.mod-roomcalendar-slot {
+    flex: 1 1 0;
+    min-height: 0;
+    padding: 0;
+    cursor: copy;
+    background: transparent;
+    border: 0;
+}
+
+.mod-roomcalendar-slot:hover {
+    background-color: rgba(15, 108, 191, 0.08);
+}
+
+.mod-roomcalendar-colentries {
+    position: absolute;
+    top: 0;
+    right: 4px;
+    bottom: 0;
+    left: 2px;
+    pointer-events: none;
+}
+
+.mod-roomcalendar-colentries .mod-roomcalendar-entry {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    min-height: 1.3rem;
+    margin: 0;
+    white-space: normal;
+    pointer-events: auto;
+    box-shadow: 0 0 0 1px #fff;
+}
+
+.mod-roomcalendar-colentries .mod-roomcalendar-entry-time,
+.mod-roomcalendar-colentries .mod-roomcalendar-entry-name,
+.mod-roomcalendar-colentries .mod-roomcalendar-entry-contact,
+.mod-roomcalendar-colentries .mod-roomcalendar-entry-room {
+    display: block;
+    flex-shrink: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mod-roomcalendar-colentries .mod-roomcalendar-entry-room::before {
+    content: none;
+}
+
+.mod-roomcalendar-colentries .mod-roomcalendar-entry-contact {
+    margin-left: 0;
+}
+
+.mod-roomcalendar-colentries .mod-roomcalendar-entry-room {
+    margin-left: 0;
+}
+
+.mod-roomcalendar-entry.continuesbefore {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.mod-roomcalendar-entry.continuesafter {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+/* Legend. */
+.mod-roomcalendar-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.25rem;
+    padding: 0;
+    margin: 1rem 0 0 0;
+    list-style: none;
+    font-size: 0.875rem;
+}
+
+/* Details modal. */
+.mod-roomcalendar-details {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.25rem 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.mod-roomcalendar-details dt {
+    font-weight: 600;
+}
+
+.mod-roomcalendar-details dd {
+    margin: 0;
+}
+
+.mod-roomcalendar-description {
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--rc-line);
+}
+
+/* Rooms management page. */
+.mod-roomcalendar-rooms td {
+    vertical-align: middle;
+}
+
+@media (max-width: 575.98px) {
+    .mod-roomcalendar-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .mod-roomcalendar-month td {
+        height: 5rem;
+    }
+}
+
+/* Month view: the responsible person goes on its own line. */
+.mod-roomcalendar-month .mod-roomcalendar-entry-contact {
+    display: block;
+    margin-left: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

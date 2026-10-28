@@ -1,0 +1,230 @@
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * Interactions of the room calendar: entry details, add/edit modal forms, deleting and room switching.
+ *
+ * @module     mod_roomcalendar/calendar
+ * @copyright  2026 Michael K.
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+define([
+    'core_form/modalform',
+    'core/modal',
+    'core/templates',
+    'core/notification',
+    'core/ajax',
+    'core/str',
+], function(ModalForm, Modal, Templates, Notification, Ajax, Str) {
+
+    var FORM_CLASS = 'mod_roomcalendar\\form\\entry_form';
+
+    /**
+     * Open the add/edit modal form.
+     *
+     * @param {Object} args form arguments
+     * @param {Promise|String} title modal title
+     * @param {HTMLElement} trigger element receiving focus afterwards
+     */
+    var openForm = function(args, title, trigger) {
+        var form = new ModalForm({
+            formClass: FORM_CLASS,
+            args: args,
+            modalConfig: {title: title},
+            saveButtonText: Str.getString('savechanges', 'core'),
+            returnFocus: trigger,
+        });
+        form.addEventListener(form.events.FORM_SUBMITTED, function() {
+            window.location.reload();
+        });
+        form.show();
+    };
+
+    /**
+     * Ask for confirmation and delete an entry or its series.
+     *
+     * @param {Number} cmid
+     * @param {Object} entry
+     * @param {Boolean} series
+     */
+    var deleteEntry = function(cmid, entry, series) {
+        Notification.deleteCancelPromise(
+            Str.getString(series ? 'deleteseries' : 'deleteentry', 'mod_roomcalendar'),
+            Str.getString(series ? 'deleteseriesconfirm' : 'deleteentryconfirm', 'mod_roomcalendar', entry.name),
+            Str.getString('delete', 'core')
+        ).then(function() {
+            return Ajax.call([{
+                methodname: 'mod_roomcalendar_delete_entry',
+                args: {cmid: cmid, entryid: entry.id, series: series},
+            }])[0].then(function() {
+                window.location.reload();
+                return null;
+            }).catch(Notification.exception);
+        }).catch(function() {
+            // Cancelled by the user.
+            return null;
+        });
+    };
+
+    /**
+     * Show the details modal of an entry.
+     *
+     * @param {Number} cmid
+     * @param {Object} entry
+     * @param {HTMLElement} trigger
+     * @return {Promise}
+     */
+    var showEntry = function(cmid, entry, trigger) {
+        return Promise.all([
+            Templates.renderForPromise('mod_roomcalendar/entry_details', entry),
+            Templates.renderForPromise('mod_roomcalendar/entry_details_footer', entry),
+        ]).then(function(rendered) {
+            return Modal.create({
+                title: entry.name,
+                body: rendered[0].html,
+                footer: rendered[1].html,
+                show: true,
+                removeOnClose: true,
+                returnElement: trigger,
+            });
+        }).then(function(modal) {
+            modal.getRoot().on('click', '[data-action]', function(e) {
+                var action = e.currentTarget.getAttribute('data-action');
+                if (action === 'edit') {
+                    e.preventDefault();
+                    modal.destroy();
+                    openForm({cmid: cmid, id: entry.id}, Str.getString('editentry', 'mod_roomcalendar'), trigger);
+                } else if (action === 'delete' || action === 'delete-series') {
+                    e.preventDefault();
+                    modal.destroy();
+                    deleteEntry(cmid, entry, action === 'delete-series');
+                }
+            });
+            return modal;
+        }).catch(Notification.exception);
+    };
+
+    /**
+     * Category filter: tick several categories, then apply. Unticked categories go into the URL.
+     *
+     * @param {HTMLElement} root calendar root element
+     */
+    var initCategoryFilter = function(root) {
+        var filter = root.querySelector('[data-region="category-filter"]');
+        if (!filter) {
+            return;
+        }
+        var boxes = function() {
+            return Array.prototype.slice.call(filter.querySelectorAll('input[type="checkbox"]'));
+        };
+        var apply = filter.querySelector('[data-action="categories-apply"]');
+        var update = function() {
+            // Showing nothing at all is not useful, so at least one category must stay ticked.
+            apply.disabled = !boxes().some(function(box) {
+                return box.checked;
+            });
+        };
+        filter.addEventListener('change', update);
+        filter.addEventListener('click', function(e) {
+            var button = e.target.closest('[data-action]');
+            if (!button) {
+                return;
+            }
+            var action = button.getAttribute('data-action');
+            if (action === 'categories-all' || action === 'categories-none') {
+                boxes().forEach(function(box) {
+                    box.checked = action === 'categories-all';
+                });
+                update();
+            } else if (action === 'categories-apply') {
+                var hidden = boxes().filter(function(box) {
+                    return !box.checked;
+                }).map(function(box) {
+                    return box.value;
+                });
+                var url = new URL(filter.dataset.baseurl, window.location.href);
+                if (hidden.length) {
+                    url.searchParams.set('hidecats', hidden.join(','));
+                }
+                window.location.href = url.toString();
+            }
+        });
+        // Close the panel on a click outside it or on Escape.
+        document.addEventListener('click', function(e) {
+            if (filter.open && !filter.contains(e.target)) {
+                filter.open = false;
+            }
+        });
+        filter.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && filter.open) {
+                filter.open = false;
+                filter.querySelector('summary').focus();
+            }
+        });
+    };
+
+    return {
+        /**
+         * Initialise a calendar.
+         *
+         * @param {String} selector of the calendar root element
+         */
+        init: function(selector) {
+            var root = document.querySelector(selector);
+            if (!root || root.dataset.initialised) {
+                return;
+            }
+            root.dataset.initialised = '1';
+            var cmid = parseInt(root.dataset.cmid, 10);
+            var entries = {};
+            try {
+                entries = JSON.parse(root.dataset.entries || '{}');
+            } catch (ex) {
+                entries = {};
+            }
+
+            root.addEventListener('click', function(e) {
+                var add = e.target.closest('[data-action="add-entry"]');
+                if (add && root.contains(add)) {
+                    e.preventDefault();
+                    openForm({
+                        cmid: cmid,
+                        prefillstart: parseInt(add.dataset.start || '0', 10),
+                        prefillroom: parseInt(add.dataset.roomid || root.dataset.roomid || '0', 10),
+                        prefillallday: add.dataset.allday ? 1 : 0,
+                    }, Str.getString('addentry', 'mod_roomcalendar'), add);
+                    return;
+                }
+                var show = e.target.closest('[data-action="show-entry"]');
+                if (show && root.contains(show)) {
+                    e.preventDefault();
+                    var entry = entries[show.dataset.entryid];
+                    if (entry) {
+                        showEntry(cmid, entry, show);
+                    }
+                }
+            });
+
+            initCategoryFilter(root);
+
+            var select = root.querySelector('[data-action="room-select"]');
+            if (select) {
+                select.addEventListener('change', function() {
+                    window.location.href = select.value;
+                });
+            }
+        },
+    };
+});
